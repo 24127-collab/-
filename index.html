@@ -1,612 +1,257 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI TTS 음성 변환기</title>
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
-
-    .container {
-      width: min(900px, 92%);
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-
-    .info {
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .option-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    select, input {
-      height: 44px;
-      padding: 0 12px;
-      border: 1px solid #ddd;
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 180px;
-      resize: vertical;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      font-size: 16px;
-      line-height: 1.5;
-      outline: none;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea:focus, select:focus, input:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
-    }
-
-    .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-      margin-top: 14px;
-    }
-
-    button, .download-link {
-      border: none;
-      border-radius: 12px;
-      padding: 0 18px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    button:hover, .download-link:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-
-    .make-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .download-link {
-      background: #7e57c2;
-      color: white;
-    }
-
-    .hidden { display: none; }
-
-    .status {
-      min-height: 24px;
-      margin-top: 14px;
-      color: #555;
-      font-size: 14px;
-    }
-
-    .result-box {
-      margin-top: 20px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #f7f9fb;
-      border: 1px solid #edf1f5;
-    }
-
-    audio {
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .help {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #777;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 700px) {
-      .option-box { grid-template-columns: 1fr; }
-      .button-row { justify-content: stretch; }
-      button, .download-link { width: 100%; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리반 한마디 방명록</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: block;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #1e293b;
+            font-size: 24px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #475569;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: #f8fafc;
+            transition: all 0.2s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .board-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+        #board {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .post-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 5px solid #3b82f6;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .post-name {
+            font-weight: bold;
+            color: #1e293b;
+        }
+        .post-content {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #334155;
+            word-break: break-all;
+        }
+        .ai-reply {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f0fdf4;
+            border-radius: 6px;
+            font-size: 14px;
+            border-left: 3px solid #22c55e;
+            color: #166534;
+        }
+        .loading, .empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 20px 0;
+            font-size: 15px;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>AI TTS 음성 변환기</h1>
-    <div class="subtitle">텍스트를 AI 음성 mp3 파일로 변환합니다</div>
 
-    <div class="info">
-      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI TTS API → mp3 음성 반환<br />
-      API Key는 index.html에 들어가지 않고 Apps Script의 스크립트 속성에 저장됩니다.
+<div class="container">
+    <h2>💬 우리반 실시간 AI 알림판</h2>
+    
+    <div class="input-group">
+        <label for="name">닉네임</label>
+        <input type="text" id="name" placeholder="이름이나 별명을 적어주세요">
     </div>
-
-    <div class="option-box">
-      <select id="modelSelect">
-        <option value="tts-1">tts-1 빠른 생성</option>
-        <option value="tts-1-hd">tts-1-hd 고품질</option>
-      </select>
-
-      <select id="voiceSelect">
-        <option value="alloy">alloy</option>
-        <option value="echo">echo</option>
-        <option value="fable">fable</option>
-        <option value="onyx">onyx</option>
-        <option value="nova">nova</option>
-        <option value="shimmer">shimmer</option>
-      </select>
-
-      <input id="speedInput" type="number" min="0.25" max="4.0" step="0.05" value="1.0" placeholder="속도" />
+    <div class="input-group">
+        <label for="content">남길 내용</label>
+        <textarea id="content" placeholder="친구들에게 하고 싶은 말이나 고민을 적어보세요. AI 반장이 댓글을 달아줍니다!"></textarea>
     </div>
+    <button onclick="sendData()">등록하기</button>
 
-    <div>
-      <div class="label">변환할 텍스트</div>
-      <textarea id="textInput" placeholder="음성으로 바꿀 문장을 입력하세요. 예: 안녕하세요. 오늘은 Firebase와 OpenAI API를 활용한 웹페이지 제작을 배워보겠습니다."></textarea>
+    <hr>
+
+    <div class="board-title">📌 실시간 한마디 목록</div>
+    <div id="board">
+        <div class="loading">데이터를 불러오는 중입니다...</div>
     </div>
+</div>
 
-    <div class="button-row">
-      <button class="clear-btn" id="clearBtn">초기화</button>
-      <button class="make-btn" id="makeBtn">음성 만들기</button>
-    </div>
+<script>
+    // 💡 [https://script.google.com/macros/s/AKfycbynZ4I7U2XxIBIxmj41CZU8G5AiBAP9fBpLGrNz-nOxFYQcXfrhgm3zA_sDwOVi8cj1xg/exec] 구글 앱스 스크립트에서 배포 후 받은 웹 앱 URL을 아래 큰따옴표 안에 넣으세요.
+    const GAS_URL = "여기에_구글_앱스_스크립트_웹앱_URL을_붙여넣으세요";
 
-    <div id="status" class="status"></div>
+    // 1. 데이터를 불러와서 화면에 뿌려주는 함수
+    function loadData() {
+        if(GAS_URL.includes("여기에_구글")) {
+            document.getElementById('board').innerHTML = "<div class='empty'>⚠️ 코드 안에 GAS_URL을 설정해주세요!</div>";
+            return;
+        }
 
-    <div id="resultBox" class="result-box hidden">
-      <div class="label">생성된 음성</div>
-      <audio id="audioPlayer" controls></audio>
-      <div class="button-row">
-        <a id="downloadLink" class="download-link" href="#" download="tts-audio.mp3">mp3 다운로드</a>
-      </div>
-    </div>
+        fetch(GAS_URL)
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                if(data.length === 0) {
+                    html = '<div class="empty">첫 번째 한마디를 남겨보세요!</div>';
+                } else {
+                    data.reverse().forEach(item => {
+                        let aiSection = "";
+                        if(item.ai) {
+                            aiSection = `
+                                <div class="ai-reply">
+                                    <strong>🤖 AI 반장의 댓글:</strong> ${escapeHtml(item.ai)}
+                                </div>
+                            `;
+                        }
 
-    <div class="help">
-      긴 문장은 생성 시간이 오래 걸릴 수 있습니다. 처음에는 짧은 문장으로 테스트해보세요.<br />
-      속도는 0.25부터 4.0까지 조절할 수 있습니다.
-    </div>
-  </div>
+                        html += `
+                            <div class="post-card">
+                                <div class="post-header">
+                                    <span class="post-name">👤 ${escapeHtml(item.name)}</span>
+                                </div>
+                                <div class="post-content">${escapeHtml(item.content).replace(/\n/g, '<br>')}</div>
+                                ${aiSection}
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('board').innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById('board').innerHTML = '<div class="empty">❌ 데이터를 로드하는 중 오류가 발생했습니다.</div>';
+                console.error(err);
+            });
+    }
 
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx373PTFucF_V-gDInLQiKBchS7t2wXxHKjQTDGgwKwtdHp7T4S9aVoXutIyThWnWF7Gg/exec';
+    // 2. 데이터를 구글 스프레드시트로 전송하는 함수
+    function sendData() {
+        const nameInput = document.getElementById('name');
+        const contentInput = document.getElementById('content');
+        
+        const name = nameInput.value.trim();
+        const content = contentInput.value.trim();
 
-    const textInput = document.getElementById('textInput');
-    const modelSelect = document.getElementById('modelSelect');
-    const voiceSelect = document.getElementById('voiceSelect');
-    const speedInput = document.getElementById('speedInput');
-    const makeBtn = document.getElementById('makeBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const statusBox = document.getElementById('status');
-    const resultBox = document.getElementById('resultBox');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const downloadLink = document.getElementById('downloadLink');
+        if (!name || !content) {
+            alert('닉네임과 내용을 모두 입력해주세요!');
+            return;
+        }
 
-    makeBtn.addEventListener('click', makeSpeech);
-    clearBtn.addEventListener('click', clearPage);
+        const btn = document.querySelector('button');
+        btn.innerText = 'AI가 답변을 생각하는 중...';
+        btn.disabled = true;
 
-    textInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        makeSpeech();
-      }
-    });
-
-    async function makeSpeech() {
-      const text = textInput.value.trim();
-      const model = modelSelect.value;
-      const voice = voiceSelect.value;
-      const speed = Number(speedInput.value || 1.0);
-
-      if (!text) {
-        alert('음성으로 변환할 텍스트를 입력해주세요.');
-        return;
-      }
-
-      if (speed < 0.25 || speed > 4.0) {
-        alert('속도는 0.25부터 4.0 사이로 입력해주세요.');
-        return;
-      }
-
-      try {
-        setLoading(true);
-        resultBox.classList.add('hidden');
-        statusBox.textContent = 'Apps Script 서버에 TTS 요청을 보내는 중입니다.';
-
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            type: 'tts',
-            text: text,
-            model: model,
-            voice: voice,
-            speed: speed
-          })
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ name, content })
+        })
+        .then(res => res.json())
+        .then(resData => {
+            if(resData.result === "success") {
+                contentInput.value = '';
+                loadData();
+            } else {
+                alert('서버 오류: ' + resData.message);
+            }
+        })
+        .catch(err => {
+            alert('전송 실패! 웹 앱 URL이나 앱 스크립트 권한 설정을 확인하세요.');
+            console.error(err);
+        })
+        .finally(() => {
+            btn.innerText = '등록하기';
+            btn.disabled = false;
         });
-
-        const data = await response.json();
-
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        if (!data.audioBase64) {
-          throw new Error('음성 데이터를 받지 못했습니다.');
-        }
-
-        const audioUrl = base64ToAudioUrl(data.audioBase64, 'audio/mpeg');
-
-        audioPlayer.src = audioUrl;
-        downloadLink.href = audioUrl;
-        downloadLink.download = makeFileName();
-        resultBox.classList.remove('hidden');
-        statusBox.textContent = '음성 생성 완료';
-      } catch (error) {
-        console.error(error);
-        statusBox.textContent = '요청 실패';
-        alert('오류가 발생했습니다.\n\n' + error.message);
-      } finally {
-        setLoading(false);
-      }
     }
 
-    function base64ToAudioUrl(base64, mimeType) {
-      const byteCharacters = atob(base64);
-      const byteArrays = [];
-
-      for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-        const slice = byteCharacters.slice(offset, offset + 512);
-        const byteNumbers = new Array(slice.length);
-
-        for (let i = 0; i < slice.length; i++) {
-          byteNumbers[i] = slice.charCodeAt(i);
-        }
-
-        const byteArray = new Uint8Array(byteNumbers);
-        byteArrays.push(byteArray);
-      }
-
-      const blob = new Blob(byteArrays, { type: mimeType });
-      return URL.createObjectURL(blob);
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    function makeFileName() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const hour = String(now.getHours()).padStart(2, '0');
-      const minute = String(now.getMinutes()).padStart(2, '0');
-      return `tts-${year}${month}${day}-${hour}${minute}.mp3`;
-    }
+    loadData();
+</script>
 
-    function setLoading(isLoading) {
-      makeBtn.disabled = isLoading;
-      makeBtn.textContent = isLoading ? '생성 중...' : '음성 만들기';
-    }
-
-    function clearPage() {
-      textInput.value = '';
-      statusBox.textContent = '';
-      audioPlayer.removeAttribute('src');
-      downloadLink.href = '#';
-      resultBox.classList.add('hidden');
-    }
-  </script>
 </body>
 </html>
-
->
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #e3f2fd, #fce4ec);
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
-
-    .container {
-      width: min(900px, 92%);
-      margin: 40px auto;
-      background: #ffffff;
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      text-align: center;
-      font-size: 28px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #777;
-      margin-bottom: 24px;
-      font-size: 14px;
-    }
-
-    .info {
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: #e8f5e9;
-      color: #2e7d32;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .chat-box {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 140px;
-      resize: vertical;
-      padding: 16px;
-      border: 1px solid #ddd;
-      border-radius: 16px;
-      font-size: 16px;
-      line-height: 1.5;
-      outline: none;
-      font-family: Arial, sans-serif;
-    }
-
-    textarea:focus {
-      border-color: #42a5f5;
-      box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
-    }
-
-    .button-row {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 0 18px;
-      height: 46px;
-      font-size: 15px;
-      cursor: pointer;
-      transition: 0.15s;
-      font-weight: bold;
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      transform: none;
-    }
-
-    .ask-btn {
-      background: #42a5f5;
-      color: white;
-    }
-
-    .clear-btn {
-      background: #b0bec5;
-      color: white;
-    }
-
-    .answer-box {
-      min-height: 220px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #f7f9fb;
-      border: 1px solid #edf1f5;
-      line-height: 1.7;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .status {
-      min-height: 24px;
-      color: #555;
-      font-size: 14px;
-    }
-
-    .label {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .help {
-      margin-top: 12px;
-      font-size: 13px;
-      color: #777;
-      line-height: 1.6;
-    }
-
-    @media (max-width: 700px) {
-      .button-row {
-        justify-content: stretch;
-      }
-
-      button {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>ChatGPT 질문 답변</h1>
-    <div class="subtitle">GitHub Pages + Google Apps Script + OpenAI API 연동</div>
-
-    <div class="info">
-      현재 구조: GitHub Pages 화면 → Google Apps Script 서버 → OpenAI API → 답변 반환<br />
-      API Key는 index.html에 들어가지 않고 Apps Script의 스크립트 속성에 저장됩니다.
-    </div>
-
-    <div class="chat-box">
-      <div>
-        <div class="label">질문</div>
-        <textarea id="questionInput" placeholder="질문을 입력하세요. 예: 고등학생에게 파이썬 반복문을 쉽게 설명해줘."></textarea>
-      </div>
-
-      <div class="button-row">
-        <button class="clear-btn" id="clearBtn">초기화</button>
-        <button class="ask-btn" id="askBtn">질문하기</button>
-      </div>
-
-      <div id="status" class="status"></div>
-
-      <div>
-        <div class="label">답변</div>
-        <div id="answerBox" class="answer-box">아직 답변이 없습니다.</div>
-      </div>
-
-      <div class="help">
-        단축키: 질문 입력창에서 Ctrl + Enter를 누르면 질문이 전송됩니다.<br />
-        오류가 발생하면 Apps Script 배포 권한이 “모든 사용자”인지 확인하세요.
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTmD_aKFktnu5BcmOj0x84D15A5qOEkAbpoyJ7DEGzJR7UayIGwKLDL7nFhU3hbB_wVw/exec';
-
-    const questionInput = document.getElementById('questionInput');
-    const answerBox = document.getElementById('answerBox');
-    const statusBox = document.getElementById('status');
-    const askBtn = document.getElementById('askBtn');
-    const clearBtn = document.getElementById('clearBtn');
-
-    askBtn.addEventListener('click', askChatGPT);
-    clearBtn.addEventListener('click', clearPage);
-
-    questionInput.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && event.ctrlKey) {
-        askChatGPT();
-      }
-    });
-
-    async function askChatGPT() {
-      const question = questionInput.value.trim();
-
-      if (!question) {
-        alert('질문을 입력해주세요.');
-        return;
-      }
-
-      try {
-        setLoading(true);
-        answerBox.textContent = '답변을 생성하는 중입니다...';
-        statusBox.textContent = 'Apps Script 서버에 요청을 보내는 중입니다.';
-
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          body: JSON.stringify({
-            question: question
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.error) {
-          throw new Error(data.error);
-        }
-
-        answerBox.textContent = data.answer || '답변을 가져오지 못했습니다.';
-        statusBox.textContent = '답변 생성 완료';
-      } catch (error) {
-        console.error(error);
-        answerBox.textContent = '오류가 발생했습니다.\n\n' + error.message;
-        statusBox.textContent = '요청 실패';
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function setLoading(isLoading) {
-      askBtn.disabled = isLoading;
-      askBtn.textContent = isLoading ? '생성 중...' : '질문하기';
-    }
-
-    function clearPage() {
-      questionInput.value = '';
-      answerBox.textContent = '아직 답변이 없습니다.';
-      statusBox.textContent = '';
-    }
-  </script>
-</body>
-</html>
-
-
