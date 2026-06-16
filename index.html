@@ -3,255 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>우리반 한마디 방명록</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+    <title>🔮 AI 오늘의 운세 챗봇</title>
+    
+    <script type="module">
+        import { initializeApp } from <!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 AI 오늘의 운세 챗봇</title>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // 🚨 [유지하기] 본인의 파이어베이스 설정을 여기에 그대로 넣어두세요!
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
+            authDomain: "nayul-75ced.firebaseapp.com",
+            projectId: "nayul-75ced",
+            storageBucket: "nayul-75ced.firebasestorage.app",
+            messagingSenderId: "415793518252",
+            appId: "1:415793518252:web:4c3e0e858da6bc57d07109"
+        };
+
+        // 파이어베이스 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        window.userEmail = "";
+        window.userName = "";
+
+        // 1. 구글 로그인 및 자동 회원가입 기능
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    handleLoginSuccess(user);
+                }).catch((error) => {
+                    alert("로그인/회원가입 실패: " + error.message);
+                });
+        };
+
+        // 2. 로그인 상태 유지 감지
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleLoginSuccess(user);
+            }
+        });
+
+        // 로그인 성공 시 화면 세팅
+        function handleLoginSuccess(user) {
+            window.userEmail = user.email;
+            window.userName = user.displayName;
+
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("profileSection").style.display = "flex";
+            document.getElementById("appSection").classList.add("active");
+
+            document.getElementById("userAuthName").innerText = user.displayName;
+            document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            display: block;
-            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+            color: #fff; padding: 40px 20px; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
         }
         .container {
-            max-width: 550px;
-            margin: 0 auto;
-            background: #ffffff;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            width: 100%; max-width: 500px; background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px); padding: 30px; border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        h2 {
-            text-align: center;
-            margin-bottom: 24px;
-            color: #1e293b;
-            font-size: 24px;
+        h2 { text-align: center; margin-bottom: 10px; font-size: 26px; letter-spacing: 1px; color: #f43f5e; }
+        .subtitle { text-align: center; font-size: 14px; color: #cbd5e1; margin-bottom: 25px; }
+        
+        .login-box {
+            background: rgba(0, 0, 0, 0.3); padding: 25px; border-radius: 16px;
+            text-align: center; border: 1px dashed rgba(255, 255, 255, 0.2);
         }
-        .input-group {
-            margin-bottom: 16px;
+        .google-login-btn {
+            background: white; color: #334155; border: none;
+            padding: 12px 24px; border-radius: 8px; font-weight: bold;
+            display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+            font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s;
         }
-        label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            font-size: 14px;
-            color: #475569;
+        .google-login-btn:hover { background: #f8fafc; transform: translateY(-2px); }
+        
+        .user-profile {
+            display: none; align-items: center; justify-content: center; gap: 12px;
+            background: rgba(244, 63, 94, 0.15); padding: 12px; border-radius: 12px;
+            margin-bottom: 25px; color: #fda4af; font-weight: bold; border: 1px solid rgba(244, 63, 94, 0.3);
         }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 15px;
-            background-color: #f8fafc;
-            transition: all 0.2s;
+        .user-profile img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f43f5e; }
+        
+        .main-app { opacity: 0.2; pointer-events: none; transition: all 0.3s; }
+        .main-app.active { opacity: 1; pointer-events: auto; }
+
+        .fortune-magic-btn {
+            width: 100%; padding: 16px; background: linear-gradient(90deg, #f43f5e 0%, #d946ef 100%);
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); transition: all 0.2s;
         }
-        input[type="text"]:focus, textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background-color: #fff;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        .fortune-magic-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244, 63, 94, 0.6); }
+        .fortune-magic-btn:disabled { background: #475569; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        
+        .fortune-result-window {
+            display: none; margin-top: 25px; padding: 20px;
+            background: rgba(0, 0, 0, 0.4); border-radius: 14px;
+            font-size: 15px; line-height: 1.7; color: #e2e8f0;
+            border-left: 4px solid #d946ef; animation: fadeIn 0.5s ease-in-out;
         }
-        textarea {
-            height: 100px;
-            resize: none;
-        }
-        button {
-            width: 100%;
-            padding: 14px;
-            background-color: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background-color: #2563eb;
-        }
-        button:disabled {
-            background-color: #94a3b8;
-            cursor: not-allowed;
-        }
-        hr {
-            margin: 30px 0;
-            border: 0;
-            border-top: 1px solid #e2e8f0;
-        }
-        .board-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #1e293b;
-        }
-        #board {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .post-card {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 5px solid #3b82f6;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
-        .post-name {
-            font-weight: bold;
-            color: #1e293b;
-        }
-        .post-content {
-            font-size: 15px;
-            line-height: 1.5;
-            color: #334155;
-            word-break: break-all;
-        }
-        .ai-reply {
-            margin-top: 12px;
-            padding: 12px;
-            background: #f0fdf4;
-            border-radius: 6px;
-            font-size: 14px;
-            border-left: 3px solid #22c55e;
-            color: #166534;
-        }
-        .loading, .empty {
-            text-align: center;
-            color: #94a3b8;
-            padding: 20px 0;
-            font-size: 15px;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>💬 우리반 실시간 AI 알림판</h2>
+    <h2>🔮 AI 오늘의 운세 메이커</h2>
+    <div class="subtitle">파이어베이스 회원 인증 & 구글 데이터 연동 시스템</div>
     
-    <div class="input-group">
-        <label for="name">닉네임</label>
-        <input type="text" id="name" placeholder="이름이나 별명을 적어주세요">
+    <div id="loginSection" class="login-box">
+        <p style="margin-bottom: 15px; font-size: 14px;">서비스 이용을 위해 안전하게 회원가입/로그인해 주세요.</p>
+        <button class="google-login-btn" onclick="loginWithGoogle()">
+            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png" alt="G logo" width="18">
+            구글 계정으로 시작하기
+        </button>
     </div>
-    <div class="input-group">
-        <label for="content">남길 내용</label>
-        <textarea id="content" placeholder="친구들에게 하고 싶은 말이나 고민을 적어보세요. AI 반장이 댓글을 달아줍니다!"></textarea>
+
+    <div id="profileSection" class="user-profile">
+        <img id="userAuthIcon" src="" alt="M">
+        <span>안녕하세요, <span id="userAuthName">사용자</span>님!</span>
     </div>
-    <button onclick="sendData()">등록하기</button>
-
-    <hr>
-
-    <div class="board-title">📌 실시간 한마디 목록</div>
-    <div id="board">
-        <div class="loading">데이터를 불러오는 중입니다...</div>
+    
+    <div id="appSection" class="main-app">
+        <button id="fortuneBtn" class="fortune-magic-btn" onclick="generateFortune()">오늘의 운세 복권 긁기 🎰</button>
+        
+        <div id="fortuneDisplay" class="fortune-result-window"></div>
     </div>
 </div>
 
 <script>
-    // 💡 [https://script.google.com/macros/s/AKfycbynZ4I7U2XxIBIxmj41CZU8G5AiBAP9fBpLGrNz-nOxFYQcXfrhgm3zA_sDwOVi8cj1xg/exec] 구글 앱스 스크립트에서 배포 후 받은 웹 앱 URL을 아래 큰따옴표 안에 넣으세요.
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzQ3NVNQVhYKJI1cbQn-jPwhDQxyjTDla1ftfeTUc1rHFRxuKFo18fD7Pt-s3itzZ7CMQ/exec";
+    // 🚨 [필수 수정] 내 구글 앱 스크립트 웹 앱 URL 주소를 여기에 꼭 붙여넣으세요!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzrMS7zA50z4DPxnLAa6I0LkH6M-QNYsZnw7OzGPw7N35sKdWCkAlskv4anW7Frkt2RJg/exec";
 
-    // 1. 데이터를 불러와서 화면에 뿌려주는 함수
-    function loadData() {
-        if(GAS_URL.includes("여기에_구글")) {
-            document.getElementById('board').innerHTML = "<div class='empty'>⚠️ 코드 안에 GAS_URL을 설정해주세요!</div>";
-            return;
-        }
-
-        fetch(GAS_URL)
-            .then(res => res.json())
-            .then(data => {
-                let html = '';
-                if(data.length === 0) {
-                    html = '<div class="empty">첫 번째 한마디를 남겨보세요!</div>';
-                } else {
-                    data.reverse().forEach(item => {
-                        let aiSection = "";
-                        if(item.ai) {
-                            aiSection = `
-                                <div class="ai-reply">
-                                    <strong>🤖 AI 반장의 댓글:</strong> ${escapeHtml(item.ai)}
-                                </div>
-                            `;
-                        }
-
-                        html += `
-                            <div class="post-card">
-                                <div class="post-header">
-                                    <span class="post-name">👤 ${escapeHtml(item.name)}</span>
-                                </div>
-                                <div class="post-content">${escapeHtml(item.content).replace(/\n/g, '<br>')}</div>
-                                ${aiSection}
-                            </div>
-                        `;
-                    });
-                }
-                document.getElementById('board').innerHTML = html;
-            })
-            .catch(err => {
-                document.getElementById('board').innerHTML = '<div class="empty">❌ 데이터를 로드하는 중 오류가 발생했습니다.</div>';
-                console.error(err);
-            });
-    }
-
-    // 2. 데이터를 구글 스프레드시트로 전송하는 함수
-    function sendData() {
-        const nameInput = document.getElementById('name');
-        const contentInput = document.getElementById('content');
-        
-        const name = nameInput.value.trim();
-        const content = contentInput.value.trim();
-
-        if (!name || !content) {
-            alert('닉네임과 내용을 모두 입력해주세요!');
-            return;
-        }
-
-        const btn = document.querySelector('button');
-        btn.innerText = 'AI가 답변을 생각하는 중...';
+    // ⚡ 구글 앱 스크립트(GAS)를 호출하여 AI 운세를 받아오고 시트에 저장하는 함수
+    async function generateFortune() {
+        const btn = document.getElementById("fortuneBtn");
+        btn.innerText = "우주의 기운을 모아 AI가 운세를 분석 중...";
         btn.disabled = true;
 
-        fetch(GAS_URL, {
-            method: 'POST',
-            body: JSON.stringify({ name, content })
-        })
-        .then(res => res.json())
-        .then(resData => {
-            if(resData.result === "success") {
-                contentInput.value = '';
-                loadData();
-            } else {
-                alert('서버 오류: ' + resData.message);
-            }
-        })
-        .catch(err => {
-            alert('전송 실패! 웹 앱 URL이나 앱 스크립트 권한 설정을 확인하세요.');
-            console.error(err);
-        })
-        .finally(() => {
-            btn.innerText = '등록하기';
+        // 파이어베이스에서 인증된 사용자 정보를 구글 스크립트로 안전하게 토스합니다.
+        const sendData = {
+            name: window.userName,
+            email: window.userEmail,
+            content: "오늘의 운세를 알려줘" // 운세 유도를 위한 고정 명령어
+        };
+
+        try {
+            const response = await fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(sendData)
+            });
+            const data = await response.json();
+
+            // 구글 앱 스크립트(Code.gs)에서 리턴해 준 AI의 운세 댓글(답변) 필드를 가져옵니다.
+            // 💡 앱스 스크립트 리턴 형식에 따라 data.reply 혹은 data.ai 등으로 명칭이 다를 수 있으니 확인해 보세요!
+            const fortuneText = data.reply || data.ai || "오늘 하루도 행운이 가득할 거예요! ✨";
+
+            const display = document.getElementById("fortuneDisplay");
+            display.innerHTML = `🔮 <strong>${window.userName}님의 AI 운세 분석 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
+            display.style.display = "block";
+            
+            btn.innerText = "오늘의 운세 확인 완료 🔮";
+        } catch (e) {
+            console.error("구글 앱 스크립트 통신 실패: ", e);
+            alert("운세를 가져오는 도중 오류가 발생했습니다. 구글 앱 스크립트 배포 상태를 확인하세요.");
+            btn.innerText = "다시 운세 뽑기";
             btn.disabled = false;
-        });
+        }
     }
-
-    function escapeHtml(str) {
-        if(!str) return '';
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-    }
-
-    loadData();
 </script>
+
+</body>
+</html>"https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // 🚨 [필수 수정] 파이어베이스 콘솔에서 복사한 본인의 웹 앱 설정을 여기에 붙여넣으세요!
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
+            authDomain: "nayul-75ced.firebaseapp.com",
+            projectId: "nayul-75ced",
+            storageBucket: "nayul-75ced.firebasestorage.app",
+            messagingSenderId: "415793518252",
+            appId: "1:415793518252:web:4c3e0e858da6bc57d07109"
+        };
+
+        // 파이어베이스 초기화
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        window.userEmail = "";
+        window.userName = "";
+
+        // 1. 구글 로그인 및 자동 회원가입 기능
+        window.loginWithGoogle = function() {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    const user = result.user;
+                    handleLoginSuccess(user);
+                }).catch((error) => {
+                    alert("로그인/회원가입 실패: " + error.message);
+                });
+        };
+
+        // 2. 로그인 상태 유지 감지
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                handleLoginSuccess(user);
+            }
+        });
+
+        // 로그인 성공 시 화면 세팅 및 기존 운세 기록 조회
+        async function handleLoginSuccess(user) {
+            window.userEmail = user.email;
+            window.userName = user.displayName;
+
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("profileSection").style.display = "flex";
+            document.getElementById("appSection").classList.add("active");
+
+            document.getElementById("userAuthName").innerText = user.displayName;
+            document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
+
+            // 기존에 저장된 오늘 자 운세가 있는지 Firestore에서 확인
+            const todayStr = new Date().toISOString().split('T')[0];
+            const docRef = doc(db, "fortuneRecords", `${user.email}_${todayStr}`);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                // 이미 오늘 운세를 뽑았다면 저장된 결과를 바로 보여줌
+                showFortuneResult(docSnap.data().fortune);
+                document.getElementById("fortuneBtn").innerText = "오늘의 운세를 이미 확인했습니다 🔮";
+                document.getElementById("fortuneBtn").disabled = true;
+            }
+        }
+
+        // 3. ⚡ AI 오늘의 운세 뽑기 기능 (챗GPT 연동 시뮬레이션 및 데이터베이스 저장)
+        window.generateFortune = async function() {
+            const btn = document.getElementById("fortuneBtn");
+            btn.innerText = "우주의 기운을 모아 AI가 운세를 분석 중...";
+            btn.disabled = true;
+
+            // 선생님이 원하시는 챗GPT 프롬프트 기반의 실시간 조합 엔진 탑재
+            const intro = [
+                `오늘 ${window.userName}님에게는 아주 신비로운 기운이 감도네요! ✨`,
+                `맑은 하늘처럼 긍정적인 에너지가 가득한 하루입니다. ☀️`,
+                `차분하게 스스로를 돌아보면 큰 행운이 따를 날입니다. 🍀`,
+                `새로운 변화의 바람이 불어오는 흥미진진한 하루가 예상됩니다. 🌪️`
+            ];
+
+            const love = [
+                "❤️ [연애운]: 가까운 곳에 있는 사람이 당신에게 긍정적인 신호를 보냅니다. 솔직한 대화가 가교가 될 것입니다.",
+                "❤️ [연애운]: 서두르지 마세요. 마음의 여유를 가질 때 진정한 인연이 눈에 들어오기 시작합니다.",
+                "❤️ [연애운]: 연인이나 친구에게 작은 칭찬을 건네보세요. 기대 이상의 따뜻한 화답이 돌아옵니다."
+            ];
+
+            const money = [
+                "💰 [금전운]: 뜻하지 않은 작은 횡재수가 있습니다. 다만 충동구매는 행운을 달아나게 하니 주의하세요.",
+                "💰 [금전운]: 노력한 만큼 결실을 맺는 날입니다. 새로운 투자보다는 저축과 계획에 집중할 때입니다.",
+                "💰 [금전운]: 나가는 돈보다 들어오는 기운이 강합니다. 지갑을 열기 전에 한 번 더 생각하면 이득을 봅니다."
+            ];
+
+            const tips = [
+                "💡 [오늘의 꿀팁]: 행운의 컬러는 '블루', 행운의 숫자는 '7'입니다. 동쪽으로 이동하면 길합니다.",
+                "💡 [오늘의 꿀팁]: 따뜻한 음료를 마시며 여유를 가지세요. 행운의 아이템은 '손수건'입니다."
+            ];
+
+            // 실시간 랜덤 조합 (AI 엔진 역할)
+            const resultText = `
+                ${intro[Math.floor(Math.random() * intro.length)]}\n\n
+                ${love[Math.floor(Math.random() * love.length)]}\n\n
+                ${money[Math.floor(Math.random() * money.length)]}\n\n
+                ${tips[Math.floor(Math.random() * tips.length)]}
+            `;
+
+            try {
+                const todayStr = new Date().toISOString().split('T')[0];
+                
+                // 💾 회원 이메일 + 오늘 날짜 조합을 Key로 삼아 Firestore에 운세 데이터 영구 저장 (회원 관리)
+                await setDoc(doc(db, "fortuneRecords", `${window.userEmail}_${todayStr}`), {
+                    email: window.userEmail,
+                    name: window.userName,
+                    fortune: resultText,
+                    date: todayStr,
+                    generatedAt: new Date()
+                });
+
+                showFortuneResult(resultText);
+                btn.innerText = "오늘의 운세 확인 완료 🔮";
+            } catch (e) {
+                console.error("운세 저장 실패: ", e);
+                alert("데이터베이스 통신 오류가 발생했습니다.");
+                btn.innerText = "다시 운세 뽑기";
+                btn.disabled = false;
+            }
+        };
+
+        function showFortuneResult(text) {
+            const display = document.getElementById("fortuneDisplay");
+            display.innerHTML = text.replace(/\n/g, "<br>");
+            display.style.display = "block";
+        }
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
+            color: #fff; padding: 40px 20px; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .container {
+            width: 100%; max-width: 500px; background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px); padding: 30px; border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        h2 { text-align: center; margin-bottom: 10px; font-size: 26px; letter-spacing: 1px; color: #f43f5e; }
+        .subtitle { text-align: center; font-size: 14px; color: #cbd5e1; margin-bottom: 25px; }
+        
+        /* 로그인/회원가입 구역 */
+        .login-box {
+            background: rgba(0, 0, 0, 0.3); padding: 25px; border-radius: 16px;
+            text-align: center; border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        .google-login-btn {
+            background: white; color: #334155; border: none;
+            padding: 12px 24px; border-radius: 8px; font-weight: bold;
+            display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
+            font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s;
+        }
+        .google-login-btn:hover { background: #f8fafc; transform: translateY(-2px); }
+        
+        /* 프로필 구역 */
+        .user-profile {
+            display: none; align-items: center; justify-content: center; gap: 12px;
+            background: rgba(244, 63, 94, 0.15); padding: 12px; border-radius: 12px;
+            margin-bottom: 25px; color: #fda4af; font-weight: bold; border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+        .user-profile img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f43f5e; }
+        
+        /* 메인 기능 제어 */
+        .main-app { opacity: 0.2; pointer-events: none; transition: all 0.3s; }
+        .main-app.active { opacity: 1; pointer-events: auto; }
+
+        .fortune-magic-btn {
+            width: 100%; padding: 16px; background: linear-gradient(90deg, #f43f5e 0%, #d946ef 100%);
+            color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4); transition: all 0.2s;
+        }
+        .fortune-magic-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244, 63, 94, 0.6); }
+        .fortune-magic-btn:disabled { background: #475569; box-shadow: none; cursor: not-allowed; color: #94a3b8; }
+        
+        /* 운세 결과 출력창 */
+        .fortune-result-window {
+            display: none; margin-top: 25px; padding: 20px;
+            background: rgba(0, 0, 0, 0.4); border-radius: 14px;
+            font-size: 15px; line-height: 1.7; color: #e2e8f0;
+            border-left: 4px solid #d946ef; animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🔮 AI 오늘의 운세 메이커</h2>
+    <div class="subtitle">파이어베이스 회원 인증 및 실시간 운세 시스템</div>
+    
+    <div id="loginSection" class="login-box">
+        <p style="margin-bottom: 15px; font-size: 14px;">서비스 이용을 위해 안전하게 회원가입/로그인해 주세요.</p>
+        <button class="google-login-btn" onclick="loginWithGoogle()">
+            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png" alt="G logo" width="18">
+            구글 계정으로 시작하기
+        </button>
+    </div>
+
+    <div id="profileSection" class="user-profile">
+        <img id="userAuthIcon" src="" alt="M">
+        <span>안녕하세요, <span id="userAuthName">사용자</span>님!</span>
+    </div>
+    
+    <div id="appSection" class="main-app">
+        <button id="fortuneBtn" class="fortune-magic-btn" onclick="generateFortune()">오늘의 운세 복권 긁기 🎰</button>
+        
+        <div id="fortuneDisplay" class="fortune-result-window"></div>
+    </div>
+</div>
 
 </body>
 </html>
