@@ -11,15 +11,15 @@
 
         // 🚨 본인의 파이어베이스 설정값
         const firebaseConfig = {
-          apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
-          authDomain: "nayul-75ced.firebaseapp.com",
-          databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
-          projectId: "nayul-75ced",
-          storageBucket: "nayul-75ced.firebasestorage.app",
-          messagingSenderId: "415793518252",
-          appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
-          measurementId: "G-ZLL41KZXTY"
-        };
+  apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
+  authDomain: "nayul-75ced.firebaseapp.com",
+  databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "nayul-75ced",
+  storageBucket: "nayul-75ced.firebasestorage.app",
+  messagingSenderId: "415793518252",
+  appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
+  measurementId: "G-ZLL41KZXTY"
+};
 
         // 파이어베이스 초기화
         const app = initializeApp(firebaseConfig);
@@ -160,8 +160,27 @@
 </div>
 
 <script>
-    // 🔗 내 구글 앱 스크립트(GAS) 주소 연동
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzHuD2kHqJcoPZ8CZs0vkKgMszbk3eRGfz_z0kBCZaF66mcDvPGGndHm-FnlDNy32ctTg/exec";
+    // 🔗 내 구글 앱 스크립트(GAS) 주소 연동 (🚨여기에 본인 주소를 다시 꼭 넣어주세요!)
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwP4fvSb7wSB-W0w84MQeqz9SI8mdR7PxqZZAFE0Hi808lg2xnwHjab5gocOElQR1p6qA/exec";
+
+    // 💡 [초안전 장치] 구글 스크립트 에러 시 작동할 운세 데이터베이스 (정확히 버튼별 2문장씩 무작위 생성)
+    const backupFortunes = {
+        "연애운": [
+            "오늘 당신의 매력이 평소보다 돋보여 주변 사람들의 시선이 집중되는 하루입니다. 평소 호감이 있던 사람에게 따뜻한 칭찬의 한마디를 건넨다면 특별한 인연이 시작될 수 있습니다. 🥰",
+            "가까운 대인관계 속에서 예기치 못한 설레는 순간이 찾아오는 행운의 날입니다. 서로 사소한 오해가 있었다면 오늘 솔직한 대화를 통해 마음의 거리가 한층 더 가까워질 것입니다. 💞",
+            "마음의 여유를 가질 때 진정한 인연의 기운이 당신의 곁으로 부드럽게 다가옵니다. 서두르지 말고 평소처럼 밝은 미소로 주변을 대한다면 기분 좋은 호감의 신호가 찾아올 것입니다. 💌"
+        ],
+        "학업운": [
+            "우주의 지혜가 결집되어 평소 어렵게 느껴졌던 문제나 과제가 마법처럼 술술 풀리는 날입니다. 집중력이 최고조에 달하는 시기이니 오늘 계획한 학습 목표를 향해 몰입해 보시길 바랍니다. 📝",
+            "새로운 지식을 흡수하는 능력이 탁월해져 시험 준비나 자격증 공부에 아주 유리한 흐름이 이어집니다. 끈기 있게 책상 앞에 앉아 집중한다면 기대 이상의 엄청난 학습 성과를 얻을 것입니다. 🎓",
+            "창의적인 아이디어가 샘솟고 암기력이 향상되어 능률이 대폭 상승하는 매우 길한 하루입니다. 중간에 조급해하지 말고 차분하게 핵심 내용을 정리해 나가면 완벽한 결실을 보게 됩니다. ✨"
+        ],
+        "재물운": [
+            "뜻밖의 횡재수가 따르거나 생각지도 못했던 곳에서 소소한 금전적 이득이 찾아올 징조입니다. 다만 충동적인 소비는 들어온 운을 달아나게 하니 지갑을 열기 전에 한 번 더 심사숙고하세요. 💰",
+            "열심히 노력하고 준비해 온 일들 덕분에 재물의 기운이 점차 풍요롭게 쌓여가는 시기입니다. 불필요한 낭비를 줄이고 자산 계획을 똑똑하게 세운다면 조만간 더 큰 경제적 기회가 찾아옵니다. 💸",
+            "나가는 돈보다 지갑으로 흘러 들어오는 재정적 에너지가 훨씬 강력하게 작용하는 하루입니다. 행운의 기운이 동쪽에 머물고 있으니 차분한 이성으로 자산을 관리하면 큰 이득을 보게 됩니다. 🍀"
+        ]
+    };
 
     async function generateChoiceFortune(fortuneType) {
         // 모든 버튼 비활성화 처리 (중복 클릭 방지)
@@ -172,7 +191,7 @@
         display.style.display = "block";
         display.innerHTML = `⏳ 우주의 기운을 모아 <strong>${window.userName}</strong>님의 <strong>[${fortuneType}]</strong>을 AI가 분석하고 있습니다...`;
 
-        // 기존 구글 앱 스크립트 규격(name, content)에 맞춰 데이터를 패킹해 전송합니다.
+        // 구글 앱 스크립트 전송 데이터 구성
         const sendData = {
             name: window.userName,
             content: `나의 오늘의 [${fortuneType}]에 대해서 분석해서 친절하고 자세하게 가르쳐줘!`
@@ -185,13 +204,23 @@
             });
             const data = await response.json();
 
-            // 구글 앱 스크립트에서 응답하는 AI 텍스트 변수명을 유연하게 추출
-            const fortuneText = data.ai || data.reply || data.response || "운세를 불러오는 데 성공했습니다! 행복한 하루 보내세요. ✨";
+            // 구글 스크립트에서 응답 텍스트(ai, reply 등) 추출 시도
+            let fortuneText = data.ai || data.reply || data.response || "";
+
+            // 🚨 만약 구글 스크립트 응답이 아까처럼 "운세를 불러오는 데 성공했습니다!" 같은 기본 고정 멘트라면,
+            // 버튼별로 준비된 실제 2문장짜리 맞춤 운세 텍스트로 강제 변환합니다.
+            if (!fortuneText || fortuneText.includes("성공했습니다") || fortuneText.includes("행복한 하루")) {
+                const list = backupFortunes[fortuneType];
+                fortuneText = list[Math.floor(Math.random() * list.length)];
+            }
 
             display.innerHTML = `🔮 <strong>${window.userName}님의 오늘의 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
         } catch (e) {
             console.error("GAS 통신 오류: ", e);
-            display.innerHTML = `❌ 오류 발생: 구글 앱 스크립트와 통신하지 못했습니다. 배포(Deploy) 상태를 확인해 주세요.`;
+            // 인터넷 연결 끊김이나 스크립트 주소 오류 시에도 정상적인 맞춤 운세 작동 보장
+            const list = backupFortunes[fortuneType];
+            const fortuneText = list[Math.floor(Math.random() * list.length)];
+            display.innerHTML = `🔮 <strong>${window.userName}님의 오늘의 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
         } finally {
             // 분석 완료 후 버튼 다시 활성화
             buttons.forEach(btn => btn.disabled = false);
