@@ -8,31 +8,37 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // 🚨 나율님이 보내주신 정확한 파이어베이스 설정값 반영 완료!
         const firebaseConfig = {
             apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
             authDomain: "nayul-75ced.firebaseapp.com",
+            databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "nayul-75ced",
             storageBucket: "nayul-75ced.firebasestorage.app",
             messagingSenderId: "415793518252",
-            appId: "1:415793518252:web:4c3e0e858da6bc57d07109"
+            appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
+            measurementId: "G-ZLL41KZXTY"
         };
 
+        // 파이어베이스 및 리얼타임 데이터베이스 초기화
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app);
+        const db = getDatabase(app);
         const provider = new GoogleAuthProvider();
 
         window.userEmail = "";
         window.userName = "";
 
+        // 구글 로그인 시스템
         window.loginWithGoogle = function() {
             signInWithPopup(auth, provider).then((result) => {
                 handleLoginSuccess(result.user);
             }).catch((error) => { alert("로그인 실패: " + error.message); });
         };
 
+        // 로그아웃 기능
         window.logout = function() {
             signOut(auth).then(() => {
                 window.userEmail = ""; window.userName = "";
@@ -56,21 +62,25 @@
             document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
 
-        // 📝 실시간 생성된 AI 답변을 파이어베이스 DB에 저장하는 함수
-        window.saveToFirestore = async function(fortuneType, resultText) {
+        // 📝 실시간 생성된 AI 답변을 Realtime Database에 저장하는 함수
+        window.saveToDatabase = async function(fortuneType, resultText) {
             if (!window.userEmail) return;
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
-                const docRef = doc(db, "fortuneRecords", `${window.userEmail}_${todayStr}_${fortuneType}`);
-                await setDoc(docRef, {
+                // 이메일의 점(.) 등 특수문자는 파이어베이스 경로 키값으로 쓸 수 없으므로 안전하게 치환
+                const safeEmailKey = window.userEmail.replace(/[^a-zA-Z0-9]/g, "_");
+                
+                // fortuneRecords/ 이메일_날짜_운세타입 구조로 저장
+                const dbRef = ref(db, 'fortuneRecords/' + `${safeEmailKey}_${todayStr}_${fortuneType}`);
+                await set(dbRef, {
                     email: window.userEmail,
                     name: window.userName,
                     fortuneType: fortuneType,
                     fortuneResult: resultText,
                     generatedAt: new Date().toISOString()
                 });
-                console.log("Firestore 실시간 AI 데이터 적재 완료!");
-            } catch (e) { console.error("Firestore 저장 실패: ", e); }
+                console.log("Realtime Database 실시간 데이터 적재 성공!");
+            } catch (e) { console.error("Database 저장 실패: ", e); }
         };
     </script>
 
@@ -125,65 +135,3 @@
             <img id="userAuthIcon" src="" alt="avatar">
             <span>반갑습니다, <span id="userAuthName">사용자</span>님!</span>
         </div>
-        <button class="logout-btn" onclick="logout()">로그아웃</button>
-    </div>
-    
-    <div id="appSection" class="main-app">
-        <p class="info-text">원하는 카테고리를 누르면 AI가 실시간 문장을 생성합니다.</p>
-        <div class="fortune-btn-group">
-            <button class="fortune-choice-btn btn-love" onclick="generateChoiceFortune('연애운')">❤️ 오늘의 연애운 보기</button>
-            <button class="fortune-choice-btn btn-study" onclick="generateChoiceFortune('학업운')">📝 오늘의 학업운 보기</button>
-            <button class="fortune-choice-btn btn-money" onclick="generateChoiceFortune('재물운')">💰 오늘의 재물운 보기</button>
-        </div>
-        <div id="fortuneDisplay" class="fortune-result-window"></div>
-    </div>
-</div>
-
-<script>
-    // 🚨 [필수] 본인의 구글 앱 스크립트 웹 앱 주소 복사/붙여넣기
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwGv1QW7tnco_7jtRXi8sLYCc9LpLwUpmXbUvPqaBEKvNKkEAIampYsi0ewXpA4eyKEpQ/exec";
-
-    function speakText(text) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const cleanText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = "ko-KR";
-        window.speechSynthesis.speak(utterance);
-    }
-
-    async function generateChoiceFortune(fortuneType) {
-        const buttons = document.querySelectorAll(".fortune-choice-btn");
-        buttons.forEach(btn => btn.disabled = true);
-        
-        const display = document.getElementById("fortuneDisplay");
-        display.style.display = "block";
-        display.innerHTML = `⏳ OpenAI GPT가 <strong>${window.userName}</strong>님의 <strong>[${fortuneType}]</strong> 문장을 실시간 생성 중입니다...`;
-
-        try {
-            const response = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ name: window.userName, content: fortuneType })
-            });
-            const data = await response.json();
-            
-            // 앱 스크립트가 챗GPT를 거쳐 돌려준 순수 실시간 답변 추출
-            const fortuneText = data.reply || data.ai || data.response;
-
-            if (!fortuneText) throw new Error("AI 응답 공백");
-
-            // Firestore 저장 및 TTS 출력
-            await window.saveToFirestore(fortuneType, fortuneText);
-            display.innerHTML = `<span class="audio-badge">🔊 AI 음성 가이드 재생 중</span><br>🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
-            speakText(`${window.userName}님의 오늘의 ${fortuneType} 결과입니다. ${fortuneText}`);
-
-        } catch (e) {
-            console.error(e);
-            display.innerHTML = `❌ 에러: 구글 앱 스크립트에서 실시간 AI 답변을 생성하지 못했습니다. OpenAI API 키와 Code.gs 코드를 확인하세요.`;
-        } finally {
-            buttons.forEach(btn => btn.disabled = false);
-        }
-    }
-</script>
-</body>
-</html>
