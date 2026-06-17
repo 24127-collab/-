@@ -3,65 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔮 AI 오늘의 선택 운세</title>
+    <title>🔮 Real AI 오늘의 선택 운세</title>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // 🚨 본인의 파이어베이스 설정값
         const firebaseConfig = {
-  apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
-  authDomain: "nayul-75ced.firebaseapp.com",
-  databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "nayul-75ced",
-  storageBucket: "nayul-75ced.firebasestorage.app",
-  messagingSenderId: "415793518252",
-  appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
-  measurementId: "G-ZLL41KZXTY"
-};
-        // 파이어베이스 초기화
+            apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
+            authDomain: "nayul-75ced.firebaseapp.com",
+            projectId: "nayul-75ced",
+            storageBucket: "nayul-75ced.firebasestorage.app",
+            messagingSenderId: "415793518252",
+            appId: "1:415793518252:web:4c3e0e858da6bc57d07109"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
         window.userEmail = "";
         window.userName = "";
 
-        // 1. 구글 로그인 시스템
         window.loginWithGoogle = function() {
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    handleLoginSuccess(result.user);
-                }).catch((error) => {
-                    alert("로그인 실패: " + error.message);
-                });
+            signInWithPopup(auth, provider).then((result) => {
+                handleLoginSuccess(result.user);
+            }).catch((error) => { alert("로그인 실패: " + error.message); });
         };
 
-        // 2. 로그인 상태 감지
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                handleLoginSuccess(user);
-            }
-        });
+        window.logout = function() {
+            signOut(auth).then(() => {
+                window.userEmail = ""; window.userName = "";
+                document.getElementById("loginSection").style.display = "block";
+                document.getElementById("profileSection").style.display = "none";
+                document.getElementById("appSection").classList.remove("active");
+                document.getElementById("fortuneDisplay").style.display = "none";
+                if (window.speechSynthesis) window.speechSynthesis.cancel();
+                alert("로그아웃되었습니다.");
+            });
+        };
+
+        onAuthStateChanged(auth, (user) => { if (user) handleLoginSuccess(user); });
 
         function handleLoginSuccess(user) {
-            window.userEmail = user.email;
-            window.userName = user.displayName;
-
+            window.userEmail = user.email; window.userName = user.displayName;
             document.getElementById("loginSection").style.display = "none";
             document.getElementById("profileSection").style.display = "flex";
             document.getElementById("appSection").classList.add("active");
-
             document.getElementById("userAuthName").innerText = user.displayName;
             document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
+
+        // 📝 실시간 생성된 AI 답변을 파이어베이스 DB에 저장하는 함수
+        window.saveToFirestore = async function(fortuneType, resultText) {
+            if (!window.userEmail) return;
+            try {
+                const todayStr = new Date().toISOString().split('T')[0];
+                const docRef = doc(db, "fortuneRecords", `${window.userEmail}_${todayStr}_${fortuneType}`);
+                await setDoc(docRef, {
+                    email: window.userEmail,
+                    name: window.userName,
+                    fortuneType: fortuneType,
+                    fortuneResult: resultText,
+                    generatedAt: new Date().toISOString()
+                });
+                console.log("Firestore 실시간 AI 데이터 적재 완료!");
+            } catch (e) { console.error("Firestore 저장 실패: ", e); }
+        };
     </script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            font-family: 'Malgun Gothic', sans-serif;
             background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);
             color: #fff; padding: 40px 20px; min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
@@ -71,161 +87,103 @@
             backdrop-filter: blur(10px); padding: 30px; border-radius: 24px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        h2 { text-align: center; margin-bottom: 10px; font-size: 26px; letter-spacing: 1px; color: #f43f5e; }
+        h2 { text-align: center; margin-bottom: 10px; font-size: 26px; color: #f43f5e; }
         .subtitle { text-align: center; font-size: 14px; color: #cbd5e1; margin-bottom: 25px; }
-        
-        /* 로그인 박스 */
-        .login-box {
-            background: rgba(0, 0, 0, 0.3); padding: 25px; border-radius: 16px;
-            text-align: center; border: 1px dashed rgba(255, 255, 255, 0.2);
-        }
-        .google-login-btn {
-            background: white; color: #334155; border: none;
-            padding: 12px 24px; border-radius: 8px; font-weight: bold;
-            display: inline-flex; align-items: center; gap: 12px; cursor: pointer;
-            font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: all 0.2s;
-        }
-        .google-login-btn:hover { background: #f8fafc; transform: translateY(-2px); }
-        
-        /* 프로필 상자 */
-        .user-profile {
-            display: none; align-items: center; justify-content: center; gap: 12px;
-            background: rgba(244, 63, 94, 0.15); padding: 12px; border-radius: 12px;
-            margin-bottom: 25px; color: #fda4af; font-weight: bold; border: 1px solid rgba(244, 63, 94, 0.3);
-        }
+        .login-box { background: rgba(0, 0, 0, 0.3); padding: 25px; border-radius: 16px; text-align: center; border: 1px dashed rgba(255, 255, 255, 0.2); }
+        .google-login-btn { background: white; color: #334155; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .user-profile { display: none; align-items: center; justify-content: space-between; background: rgba(244, 63, 94, 0.15); padding: 12px 16px; border-radius: 12px; margin-bottom: 25px; color: #fda4af; font-weight: bold; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .profile-info { display: flex; align-items: center; gap: 12px; }
         .user-profile img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #f43f5e; }
-        
-        /* 메인 앱 (로그인 전 잠금) */
+        .logout-btn { background: rgba(255, 255, 255, 0.2); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
         .main-app { opacity: 0.1; pointer-events: none; transition: all 0.3s; }
         .main-app.active { opacity: 1; pointer-events: auto; }
-
         .info-text { text-align: center; font-size: 15px; margin-bottom: 20px; color: #e2e8f0; }
-
-        /* 운세 버튼 그룹 */
-        .fortune-btn-group {
-            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
-        }
-        .fortune-choice-btn {
-            width: 100%; padding: 16px; color: white; border: none; border-radius: 12px;
-            font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .btn-love { background: linear-gradient(90deg, #ff4e50, #f9d423); box-shadow: 0 4px 10px rgba(255, 78, 80, 0.3); }
-        .btn-study { background: linear-gradient(90deg, #00c6ff, #0072ff); box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3); }
-        .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); box-shadow: 0 4px 10px rgba(17, 153, 142, 0.3); }
-        
-        .fortune-choice-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        .fortune-choice-btn:disabled { background: #475569 !important; box-shadow: none !important; cursor: not-allowed; opacity: 0.6; }
-        
-        /* 결과 출력창 */
-        .fortune-result-window {
-            display: none; margin-top: 25px; padding: 20px;
-            background: rgba(0, 0, 0, 0.5); border-radius: 14px;
-            font-size: 15px; line-height: 1.7; color: #f8fafc;
-            border-left: 4px solid #d946ef; border-right: 4px solid #d946ef;
-        }
+        .fortune-btn-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .fortune-choice-btn { width: 100%; padding: 16px; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-love { background: linear-gradient(90deg, #ff4e50, #f9d423); }
+        .btn-study { background: linear-gradient(90deg, #00c6ff, #0072ff); }
+        .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); }
+        .fortune-choice-btn:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.6; }
+        .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.5); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border-left: 4px solid #d946ef; }
+        .audio-badge { display: inline-block; background: #d946ef; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>🔮 AI 오늘의 선택 운세</h2>
-    <div class="subtitle">파이어베이스 인증 & 맞춤형 AI 운세 분석</div>
+    <div class="subtitle">실시간 GPT 연동 및 오디오 생성 시스템</div>
     
     <div id="loginSection" class="login-box">
-        <p style="margin-bottom: 15px; font-size: 14px;">원하는 운세를 보려면 구글 계정으로 로그인해 주세요.</p>
         <button class="google-login-btn" onclick="loginWithGoogle()">
-            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png" alt="G logo" width="18">
-            구글 계정으로 로그인/회원가입
+            <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/web-24dp/logo_googleg_color_24dp.png" alt="G" width="18">구글 계정으로 시작하기
         </button>
     </div>
 
     <div id="profileSection" class="user-profile">
-        <img id="userAuthIcon" src="" alt="M">
-        <span>반갑습니다, <span id="userAuthName">사용자</span>님!</span>
+        <div class="profile-info">
+            <img id="userAuthIcon" src="" alt="avatar">
+            <span>반갑습니다, <span id="userAuthName">사용자</span>님!</span>
+        </div>
+        <button class="logout-btn" onclick="logout()">로그아웃</button>
     </div>
     
     <div id="appSection" class="main-app">
-        <p class="info-text">오늘 가장 궁금한 운세를 하나 선택해 보세요!</p>
-        
+        <p class="info-text">원하는 카테고리를 누르면 AI가 실시간 문장을 생성합니다.</p>
         <div class="fortune-btn-group">
             <button class="fortune-choice-btn btn-love" onclick="generateChoiceFortune('연애운')">❤️ 오늘의 연애운 보기</button>
             <button class="fortune-choice-btn btn-study" onclick="generateChoiceFortune('학업운')">📝 오늘의 학업운 보기</button>
             <button class="fortune-choice-btn btn-money" onclick="generateChoiceFortune('재물운')">💰 오늘의 재물운 보기</button>
         </div>
-        
         <div id="fortuneDisplay" class="fortune-result-window"></div>
     </div>
 </div>
 
 <script>
-    // 🔗 내 구글 앱 스크립트(GAS) 주소 연동 (🚨여기에 본인 주소를 다시 꼭 넣어주세요!)
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwP4fvSb7wSB-W0w84MQeqz9SI8mdR7PxqZZAFE0Hi808lg2xnwHjab5gocOElQR1p6qA/exec";
+    // 🚨 [필수] 본인의 구글 앱 스크립트 웹 앱 주소 복사/붙여넣기
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxux56GWesc8MiPhhjHcxHwKIe2IL8Chhd4413kFU2wGTJSEf7PPF4oAaDYly4Z5WaRZA/exec";
 
-    // 💡 [초안전 장치] 구글 스크립트 에러 시 작동할 운세 데이터베이스 (정확히 버튼별 2문장씩 무작위 생성)
-    const backupFortunes = {
-        "연애운": [
-            "오늘 당신의 매력이 평소보다 돋보여 주변 사람들의 시선이 집중되는 하루입니다. 평소 호감이 있던 사람에게 따뜻한 칭찬의 한마디를 건넨다면 특별한 인연이 시작될 수 있습니다. 🥰",
-            "가까운 대인관계 속에서 예기치 못한 설레는 순간이 찾아오는 행운의 날입니다. 서로 사소한 오해가 있었다면 오늘 솔직한 대화를 통해 마음의 거리가 한층 더 가까워질 것입니다. 💞",
-            "마음의 여유를 가질 때 진정한 인연의 기운이 당신의 곁으로 부드럽게 다가옵니다. 서두르지 말고 평소처럼 밝은 미소로 주변을 대한다면 기분 좋은 호감의 신호가 찾아올 것입니다. 💌"
-        ],
-        "학업운": [
-            "우주의 지혜가 결집되어 평소 어렵게 느껴졌던 문제나 과제가 마법처럼 술술 풀리는 날입니다. 집중력이 최고조에 달하는 시기이니 오늘 계획한 학습 목표를 향해 몰입해 보시길 바랍니다. 📝",
-            "새로운 지식을 흡수하는 능력이 탁월해져 시험 준비나 자격증 공부에 아주 유리한 흐름이 이어집니다. 끈기 있게 책상 앞에 앉아 집중한다면 기대 이상의 엄청난 학습 성과를 얻을 것입니다. 🎓",
-            "창의적인 아이디어가 샘솟고 암기력이 향상되어 능률이 대폭 상승하는 매우 길한 하루입니다. 중간에 조급해하지 말고 차분하게 핵심 내용을 정리해 나가면 완벽한 결실을 보게 됩니다. ✨"
-        ],
-        "재물운": [
-            "뜻밖의 횡재수가 따르거나 생각지도 못했던 곳에서 소소한 금전적 이득이 찾아올 징조입니다. 다만 충동적인 소비는 들어온 운을 달아나게 하니 지갑을 열기 전에 한 번 더 심사숙고하세요. 💰",
-            "열심히 노력하고 준비해 온 일들 덕분에 재물의 기운이 점차 풍요롭게 쌓여가는 시기입니다. 불필요한 낭비를 줄이고 자산 계획을 똑똑하게 세운다면 조만간 더 큰 경제적 기회가 찾아옵니다. 💸",
-            "나가는 돈보다 지갑으로 흘러 들어오는 재정적 에너지가 훨씬 강력하게 작용하는 하루입니다. 행운의 기운이 동쪽에 머물고 있으니 차분한 이성으로 자산을 관리하면 큰 이득을 보게 됩니다. 🍀"
-        ]
-    };
+    function speakText(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = "ko-KR";
+        window.speechSynthesis.speak(utterance);
+    }
 
     async function generateChoiceFortune(fortuneType) {
-        // 모든 버튼 비활성화 처리 (중복 클릭 방지)
         const buttons = document.querySelectorAll(".fortune-choice-btn");
         buttons.forEach(btn => btn.disabled = true);
         
         const display = document.getElementById("fortuneDisplay");
         display.style.display = "block";
-        display.innerHTML = `⏳ 우주의 기운을 모아 <strong>${window.userName}</strong>님의 <strong>[${fortuneType}]</strong>을 AI가 분석하고 있습니다...`;
-
-        // 구글 앱 스크립트 전송 데이터 구성
-        const sendData = {
-            name: window.userName,
-            content: `나의 오늘의 [${fortuneType}]에 대해서 분석해서 친절하고 자세하게 가르쳐줘!`
-        };
+        display.innerHTML = `⏳ OpenAI GPT가 <strong>${window.userName}</strong>님의 <strong>[${fortuneType}]</strong> 문장을 실시간 생성 중입니다...`;
 
         try {
             const response = await fetch(GAS_URL, {
                 method: "POST",
-                body: JSON.stringify(sendData)
+                body: JSON.stringify({ name: window.userName, content: fortuneType })
             });
             const data = await response.json();
+            
+            // 앱 스크립트가 챗GPT를 거쳐 돌려준 순수 실시간 답변 추출
+            const fortuneText = data.reply || data.ai || data.response;
 
-            // 구글 스크립트에서 응답 텍스트(ai, reply 등) 추출 시도
-            let fortuneText = data.ai || data.reply || data.response || "";
+            if (!fortuneText) throw new Error("AI 응답 공백");
 
-            // 🚨 만약 구글 스크립트 응답이 아까처럼 "운세를 불러오는 데 성공했습니다!" 같은 기본 고정 멘트라면,
-            // 버튼별로 준비된 실제 2문장짜리 맞춤 운세 텍스트로 강제 변환합니다.
-            if (!fortuneText || fortuneText.includes("성공했습니다") || fortuneText.includes("행복한 하루")) {
-                const list = backupFortunes[fortuneType];
-                fortuneText = list[Math.floor(Math.random() * list.length)];
-            }
+            // Firestore 저장 및 TTS 출력
+            await window.saveToFirestore(fortuneType, fortuneText);
+            display.innerHTML = `<span class="audio-badge">🔊 AI 음성 가이드 재생 중</span><br>🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
+            speakText(`${window.userName}님의 오늘의 ${fortuneType} 결과입니다. ${fortuneText}`);
 
-            display.innerHTML = `🔮 <strong>${window.userName}님의 오늘의 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
         } catch (e) {
-            console.error("GAS 통신 오류: ", e);
-            // 인터넷 연결 끊김이나 스크립트 주소 오류 시에도 정상적인 맞춤 운세 작동 보장
-            const list = backupFortunes[fortuneType];
-            const fortuneText = list[Math.floor(Math.random() * list.length)];
-            display.innerHTML = `🔮 <strong>${window.userName}님의 오늘의 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
+            console.error(e);
+            display.innerHTML = `❌ 에러: 구글 앱 스크립트에서 실시간 AI 답변을 생성하지 못했습니다. OpenAI API 키와 Code.gs 코드를 확인하세요.`;
         } finally {
-            // 분석 완료 후 버튼 다시 활성화
             buttons.forEach(btn => btn.disabled = false);
         }
     }
 </script>
-
 </body>
 </html>
