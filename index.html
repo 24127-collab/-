@@ -11,16 +11,17 @@
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // 🚨 나율님의 파이어베이스 설정값
-const firebaseConfig = {
-  apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
-  authDomain: "nayul-75ced.firebaseapp.com",
-  databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "nayul-75ced",
-  storageBucket: "nayul-75ced.firebasestorage.app",
-  messagingSenderId: "415793518252",
-  appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
-  measurementId: "G-ZLL41KZXTY"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
+            authDomain: "nayul-75ced.firebaseapp.com",
+            databaseURL: "https://nayul-75ced-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "nayul-75ced",
+            storageBucket: "nayul-75ced.firebasestorage.app",
+            messagingSenderId: "415793518252",
+            appId: "1:415793518252:web:4c3e0e858da6bc57d07109",
+            measurementId: "G-ZLL41KZXTY"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
@@ -58,12 +59,17 @@ const firebaseConfig = {
             document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
 
+        // 📝 [동기화 보완] 데이터베이스 저장 함수
         window.saveToDatabase = async function(fortuneType, resultText) {
-            if (!window.userEmail) return;
+            if (!window.userEmail) {
+                console.error("이메일 정보가 없어 DB 저장을 건너뜁니다.");
+                return;
+            }
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
                 const safeEmailKey = window.userEmail.replace(/[^a-zA-Z0-9]/g, "_");
                 const dbRef = ref(db, 'fortuneRecords/' + `${safeEmailKey}_${todayStr}_${fortuneType}`);
+                
                 await set(dbRef, {
                     email: window.userEmail,
                     name: window.userName,
@@ -72,7 +78,9 @@ const firebaseConfig = {
                     generatedAt: new Date().toISOString()
                 });
                 console.log("Realtime Database 실시간 데이터 적재 성공!");
-            } catch (e) { console.error("Database 저장 실패: ", e); }
+            } catch (e) { 
+                console.error("Database 저장 에러 상세: ", e); 
+            }
         };
     </script>
 
@@ -107,7 +115,6 @@ const firebaseConfig = {
         .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); }
         .fortune-choice-btn:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.6; }
         
-        /* 🎨 결과 창 및 버튼 디자인 대폭 강화 */
         .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.6); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border: 2px solid #d946ef; }
         .tts-container { text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
         .tts-trigger-btn {
@@ -151,13 +158,11 @@ const firebaseConfig = {
 </div>
 
 <script>
-    // 🔗 나율님의 구글 스크립트 웹 앱 URL 주소
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyqsfxDKiMAslN4UKGRi_LKzLHP4cfFPdZIFBEauENaaVE_mGJ5_wwBzV1zKGsDFYZnoQ/exec";
 
     let currentFortuneText = "";
     let currentFortuneType = "";
 
-    // 🔊 TTS 실행 함수
     window.playFortuneTTS = function() {
         if (!window.speechSynthesis || !currentFortuneText) return;
         window.speechSynthesis.cancel(); 
@@ -189,9 +194,11 @@ const firebaseConfig = {
             currentFortuneText = fortuneText;
             currentFortuneType = fortuneType;
 
-            await window.saveToDatabase(fortuneType, fortuneText);
+            // 💡 [해결] 데이터베이스에 안전하게 저장이 완료된 뒤 화면을 그리도록 변경
+            if (window.saveToDatabase) {
+                await window.saveToDatabase(fortuneType, fortuneText);
+            }
             
-            // 💡 레이아웃을 완전히 분리하여 버튼이 무조건 보이도록 설계
             display.innerHTML = `
                 <div class="tts-container">
                     <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
@@ -206,7 +213,10 @@ const firebaseConfig = {
             currentFortuneText = fallbackText;
             currentFortuneType = fortuneType;
             
-            await window.saveToDatabase(fortuneType, fallbackText);
+            if (window.saveToDatabase) {
+                await window.saveToDatabase(fortuneType, fallbackText);
+            }
+            
             display.innerHTML = `
                 <div class="tts-container">
                     <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
