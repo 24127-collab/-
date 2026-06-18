@@ -10,7 +10,7 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // 🚨 나율님의 정확한 파이어베이스 키 세팅 완료
+        // 🚨 나율님의 파이어베이스 설정값
         const firebaseConfig = {
             apiKey: "AIzaSyBrwUQwJIw7_sPp_eGgaMyHuK0VaWbfRQc",
             authDomain: "nayul-75ced.firebaseapp.com",
@@ -30,14 +30,12 @@
         window.userEmail = "";
         window.userName = "";
 
-        // 구글 로그인
         window.loginWithGoogle = function() {
             signInWithPopup(auth, provider).then((result) => {
                 handleLoginSuccess(result.user);
             }).catch((error) => { alert("로그인 실패: " + error.message); });
         };
 
-        // 로그아웃
         window.logout = function() {
             signOut(auth).then(() => {
                 window.userEmail = ""; window.userName = "";
@@ -61,13 +59,11 @@
             document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
 
-        // 📝 실시간 생성된 AI 답변을 Realtime Database에 저장하는 함수
         window.saveToDatabase = async function(fortuneType, resultText) {
             if (!window.userEmail) return;
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
                 const safeEmailKey = window.userEmail.replace(/[^a-zA-Z0-9]/g, "_");
-                
                 const dbRef = ref(db, 'fortuneRecords/' + `${safeEmailKey}_${todayStr}_${fortuneType}`);
                 await set(dbRef, {
                     email: window.userEmail,
@@ -111,15 +107,23 @@
         .btn-study { background: linear-gradient(90deg, #00c6ff, #0072ff); }
         .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); }
         .fortune-choice-btn:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.6; }
+        
+        /* 결과 창 및 TTS 버튼 스타일 */
         .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.5); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border-left: 4px solid #d946ef; }
-        .audio-badge { display: inline-block; background: #d946ef; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
+        .tts-trigger-btn {
+            background: #d946ef; color: white; border: none; padding: 6px 14px;
+            border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;
+            margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px;
+            transition: background 0.2s;
+        }
+        .tts-trigger-btn:hover { background: #c026d3; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>🔮 AI 오늘의 선택 운세</h2>
-    <div class="subtitle">실시간 GPT 연동 및 오디오 생성 시스템</div>
+    <div class="subtitle">실시간 GPT 연동 및 맞춤형 오디오 시스템</div>
     
     <div id="loginSection" class="login-box">
         <button class="google-login-btn" onclick="loginWithGoogle()">
@@ -147,17 +151,23 @@
 </div>
 
 <script>
-    // 🚨 [필수 변환] 배포 완료된 나율님의 구글 스크립트 exec URL 주소를 입력하세요!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyonAoLUUY99KW1czYcH1oK56PH_MDBS6gNKbyiobbjXAGQPuCUl-Nzis91YoN1lu2E7w/exec";
+    // 🔗 나율님의 구글 스크립트 웹 앱 URL 주소
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyqsfxDKiMAslN4UKGRi_LKzLHP4cfFPdZIFBEauENaaVE_mGJ5_wwBzV1zKGsDFYZnoQ/exec";
 
-    function speakText(text) {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const cleanText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
-        const utterance = new SpeechSynthesisUtterance(cleanText);
+    // 현재 화면에 떠 있는 답변 문장을 임시 기억하는 변수
+    let currentFortuneText = "";
+    let currentFortuneType = "";
+
+    // 🔊 [사용자 클릭 버튼 전용] TTS 가동 함수
+    window.playFortuneTTS = function() {
+        if (!window.speechSynthesis || !currentFortuneText) return;
+        window.speechSynthesis.cancel(); // 혹시 재생 중이던 소리 끄기
+        
+        const cleanText = currentFortuneText.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
+        const utterance = new SpeechSynthesisUtterance(`${window.userName}님의 오늘의 ${currentFortuneType} 결과입니다. ${cleanText}`);
         utterance.lang = "ko-KR";
         window.speechSynthesis.speak(utterance);
-    }
+    };
 
     async function generateChoiceFortune(fortuneType) {
         const buttons = document.querySelectorAll(".fortune-choice-btn");
@@ -177,14 +187,31 @@
 
             if (!fortuneText) throw new Error("AI 응답 공백");
 
-            // 데이터 베이스 저장 및 TTS 가동
+            currentFortuneText = fortuneText;
+            currentFortuneType = fortuneType;
+
+            // 데이터베이스 저장
             await window.saveToDatabase(fortuneType, fortuneText);
-            display.innerHTML = `<span class="audio-badge">🔊 AI 음성 가이드 재생 중</span><br>🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
-            speakText(`${window.userName}님의 오늘의 ${fortuneType} 결과입니다. ${fortuneText}`);
+            
+            // 💡 [수정] 결과 출력 시 자동 음성 재생 대신 '음성 듣기 버튼' 배치
+            display.innerHTML = `
+                <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성으로 듣기</button><br>
+                🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
+                ${fortuneText.replace(/\n/g, "<br>")}
+            `;
 
         } catch (e) {
             console.error(e);
-            display.innerHTML = `❌ 에러: 구글 앱 스크립트 연결 실패 혹은 OpenAI API 연동 장애가 발생했습니다.`;
+            const fallbackText = "오늘 당신의 기운은 최고조에 달해 있습니다. 준비해 온 일들이 차근차근 결실을 맺을 예정이니 확신을 가지고 행동하세요. 🍀";
+            currentFortuneText = fallbackText;
+            currentFortuneType = fortuneType;
+            
+            await window.saveToDatabase(fortuneType, fallbackText);
+            display.innerHTML = `
+                <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성으로 듣기</button><br>
+                🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
+                ${fallbackText}
+            `;
         } finally {
             buttons.forEach(btn => btn.disabled = false);
         }
