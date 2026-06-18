@@ -108,15 +108,16 @@
         .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); }
         .fortune-choice-btn:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.6; }
         
-        /* 결과 창 및 TTS 버튼 스타일 */
-        .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.5); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border-left: 4px solid #d946ef; }
+        /* 🎨 결과 창 및 버튼 디자인 대폭 강화 */
+        .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.6); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border: 2px solid #d946ef; }
+        .tts-container { text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
         .tts-trigger-btn {
-            background: #d946ef; color: white; border: none; padding: 6px 14px;
-            border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer;
-            margin-bottom: 12px; display: inline-flex; align-items: center; gap: 6px;
-            transition: background 0.2s;
+            background: linear-gradient(90deg, #d946ef, #8b5cf6); color: white; border: none; 
+            padding: 10px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.4);
+            transition: all 0.2s ease;
         }
-        .tts-trigger-btn:hover { background: #c026d3; }
+        .tts-trigger-btn:hover { transform: scale(1.05); background: linear-gradient(90deg, #c026d3, #7c3aed); }
     </style>
 </head>
 <body>
@@ -154,14 +155,13 @@
     // 🔗 나율님의 구글 스크립트 웹 앱 URL 주소
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyqsfxDKiMAslN4UKGRi_LKzLHP4cfFPdZIFBEauENaaVE_mGJ5_wwBzV1zKGsDFYZnoQ/exec";
 
-    // 현재 화면에 떠 있는 답변 문장을 임시 기억하는 변수
     let currentFortuneText = "";
     let currentFortuneType = "";
 
-    // 🔊 [사용자 클릭 버튼 전용] TTS 가동 함수
+    // 🔊 TTS 실행 함수
     window.playFortuneTTS = function() {
         if (!window.speechSynthesis || !currentFortuneText) return;
-        window.speechSynthesis.cancel(); // 혹시 재생 중이던 소리 끄기
+        window.speechSynthesis.cancel(); 
         
         const cleanText = currentFortuneText.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
         const utterance = new SpeechSynthesisUtterance(`${window.userName}님의 오늘의 ${currentFortuneType} 결과입니다. ${cleanText}`);
@@ -190,12 +190,13 @@
             currentFortuneText = fortuneText;
             currentFortuneType = fortuneType;
 
-            // 데이터베이스 저장
             await window.saveToDatabase(fortuneType, fortuneText);
             
-            // 💡 [수정] 결과 출력 시 자동 음성 재생 대신 '음성 듣기 버튼' 배치
+            // 💡 레이아웃을 완전히 분리하여 버튼이 무조건 보이도록 설계
             display.innerHTML = `
-                <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성으로 듣기</button><br>
+                <div class="tts-container">
+                    <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
+                </div>
                 🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
                 ${fortuneText.replace(/\n/g, "<br>")}
             `;
@@ -208,7 +209,9 @@
             
             await window.saveToDatabase(fortuneType, fallbackText);
             display.innerHTML = `
-                <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성으로 듣기</button><br>
+                <div class="tts-container">
+                    <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
+                </div>
                 🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
                 ${fallbackText}
             `;
