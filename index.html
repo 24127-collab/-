@@ -59,12 +59,9 @@
             document.getElementById("userAuthIcon").src = user.photoURL || "https://via.placeholder.com/40";
         }
 
-        // 📝 [동기화 보완] 데이터베이스 저장 함수
+        // 📝 데이터베이스 적재 함수
         window.saveToDatabase = async function(fortuneType, resultText) {
-            if (!window.userEmail) {
-                console.error("이메일 정보가 없어 DB 저장을 건너뜁니다.");
-                return;
-            }
+            if (!window.userEmail) return;
             try {
                 const todayStr = new Date().toISOString().split('T')[0];
                 const safeEmailKey = window.userEmail.replace(/[^a-zA-Z0-9]/g, "_");
@@ -79,7 +76,7 @@
                 });
                 console.log("Realtime Database 실시간 데이터 적재 성공!");
             } catch (e) { 
-                console.error("Database 저장 에러 상세: ", e); 
+                console.error("Database 저장 실패: ", e); 
             }
         };
     </script>
@@ -114,23 +111,15 @@
         .btn-study { background: linear-gradient(90deg, #00c6ff, #0072ff); }
         .btn-money { background: linear-gradient(90deg, #11998e, #38ef7d); }
         .fortune-choice-btn:disabled { background: #475569 !important; cursor: not-allowed; opacity: 0.6; }
-        
-        .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.6); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border: 2px solid #d946ef; }
-        .tts-container { text-align: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; }
-        .tts-trigger-btn {
-            background: linear-gradient(90deg, #d946ef, #8b5cf6); color: white; border: none; 
-            padding: 10px 20px; border-radius: 30px; font-size: 14px; font-weight: bold; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(217, 70, 239, 0.4);
-            transition: all 0.2s ease;
-        }
-        .tts-trigger-btn:hover { transform: scale(1.05); background: linear-gradient(90deg, #c026d3, #7c3aed); }
+        .fortune-result-window { display: none; margin-top: 25px; padding: 20px; background: rgba(0, 0, 0, 0.5); border-radius: 14px; font-size: 15px; line-height: 1.7; color: #f8fafc; border-left: 4px solid #d946ef; }
+        .audio-badge { display: inline-block; background: #d946ef; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>🔮 AI 오늘의 선택 운세</h2>
-    <div class="subtitle">실시간 GPT 연동 및 맞춤형 오디오 시스템</div>
+    <div class="subtitle">실시간 GPT 연동 및 자동 오디오 시스템</div>
     
     <div id="loginSection" class="login-box">
         <button class="google-login-btn" onclick="loginWithGoogle()">
@@ -158,20 +147,17 @@
 </div>
 
 <script>
+    // 🔗 나율님의 구글 스크립트 웹 앱 URL 주소
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyqsfxDKiMAslN4UKGRi_LKzLHP4cfFPdZIFBEauENaaVE_mGJ5_wwBzV1zKGsDFYZnoQ/exec";
 
-    let currentFortuneText = "";
-    let currentFortuneType = "";
-
-    window.playFortuneTTS = function() {
-        if (!window.speechSynthesis || !currentFortuneText) return;
-        window.speechSynthesis.cancel(); 
-        
-        const cleanText = currentFortuneText.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
-        const utterance = new SpeechSynthesisUtterance(`${window.userName}님의 오늘의 ${currentFortuneType} 결과입니다. ${cleanText}`);
+    function speakText(text) {
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const cleanText = text.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]/g, "");
+        const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = "ko-KR";
         window.speechSynthesis.speak(utterance);
-    };
+    }
 
     async function generateChoiceFortune(fortuneType) {
         const buttons = document.querySelectorAll(".fortune-choice-btn");
@@ -191,39 +177,20 @@
 
             if (!fortuneText) throw new Error("AI 응답 공백");
 
-            currentFortuneText = fortuneText;
-            currentFortuneType = fortuneType;
-
-            // 💡 [해결] 데이터베이스에 안전하게 저장이 완료된 뒤 화면을 그리도록 변경
-            if (window.saveToDatabase) {
-                await window.saveToDatabase(fortuneType, fortuneText);
-            }
+            // 1. 데이터베이스 저장 호출
+            await window.saveToDatabase(fortuneType, fortuneText);
             
-            display.innerHTML = `
-                <div class="tts-container">
-                    <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
-                </div>
-                🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
-                ${fortuneText.replace(/\n/g, "<br>")}
-            `;
+            // 2. 화면 출력 및 오디오 자동 시작
+            display.innerHTML = `<span class="audio-badge">🔊 AI 음성 가이드 재생 중</span><br>🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>` + fortuneText.replace(/\n/g, "<br>");
+            speakText(`${window.userName}님의 오늘의 ${fortuneType} 결과입니다. ${fortuneText}`);
 
         } catch (e) {
             console.error(e);
             const fallbackText = "오늘 당신의 기운은 최고조에 달해 있습니다. 준비해 온 일들이 차근차근 결실을 맺을 예정이니 확신을 가지고 행동하세요. 🍀";
-            currentFortuneText = fallbackText;
-            currentFortuneType = fortuneType;
             
-            if (window.saveToDatabase) {
-                await window.saveToDatabase(fortuneType, fallbackText);
-            }
-            
-            display.innerHTML = `
-                <div class="tts-container">
-                    <button class="tts-trigger-btn" onclick="playFortuneTTS()">🔊 AI 음성 가이드 듣기</button>
-                </div>
-                🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>
-                ${fallbackText}
-            `;
+            await window.saveToDatabase(fortuneType, fallbackText);
+            display.innerHTML = `<span class="audio-badge">🔊 AI 음성 가이드 재생 중 (네트워크 최적화)</span><br>🔮 <strong>${window.userName}님의 실시간 [${fortuneType}] 결과</strong><br><br>` + fallbackText;
+            speakText(`${window.userName}님의 오늘의 ${fortuneType} 결과입니다. ${fallbackText}`);
         } finally {
             buttons.forEach(btn => btn.disabled = false);
         }
